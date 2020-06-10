@@ -3,8 +3,9 @@ import time
 from math import sin, cos, sqrt, atan2, radians
 from pip._vendor import requests
 
-from flight_db import FlightDB
 
+from flight_db import FlightDB
+flight_database = FlightDB('postgres', 'summt1913', '192.168.178.67', 5432, 'flight_radar')
 my_position = {'latitude': 52.694142, 'longitude': 13.362245}
 
 bvs_position = {'latitude': 52.571717, 'longitude': 13.368112}
@@ -17,6 +18,9 @@ def get_flight_information_dict():
     dict = json.loads(response.text)
     return dict['aircraft']
 
+def get_current_flights():
+    current_flights_as_dict_list = flight_database.check_flight_dicts(get_flight_information_dict())
+    return flight_database.add_history_coordinates_to_flight_dict_list(current_flights_as_dict_list)
 
 def print_flight_statistic():
     while True:
@@ -100,12 +104,12 @@ def get_distance(latitude1, longitude1, latitude2, longitude2):
 
 if __name__ == '__main__':
     # get_max_range(300)
-    flight_database = FlightDB('postgres', 'summt1913', '192.168.178.67', 5432, 'flight_radar')
 
-    flight_dict_list = flight_database.get_flight_data('2020-05-31 11:20:41')
+
+   # flight_dict_list = flight_database.get_flight_data('2020-05-31 11:20:41')
 
     #print(flight_database.check_flight_dicts(get_flight_information_dict()))
-    flight_database.get_coordinates_of_flights(['as', '232dw'])
+    print(get_current_flights())
     test_dict_list = [
         {'hex': '440037', 'flight': 'EJU9042 ', 'alt_baro': 8000, 'alt_geom': 8275, 'gs': 290.7, 'ias': 250, 'tas': 282,
          'mach': 0.436, 'track': 243.0, 'track_rate': -0.03, 'roll': 0.2, 'mag_heading': 239.6, 'baro_rate': 0,

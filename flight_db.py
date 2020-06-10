@@ -1,4 +1,3 @@
-import json
 import uuid
 
 import psycopg2
@@ -64,12 +63,18 @@ class FlightDB:
             return True
         return False
 
-    def get_flight_data(self, flight_after_timestamp=None):
-        if flight_after_timestamp is not None:
+    def get_flight_data(self, flight_after_timestamp=None, flight_number=None, get_recorded_positions=False):
+        if flight_after_timestamp is not None and flight_number is None:
             result = self.execute_command(
                 "Select * from flight_history where time_added > '" + flight_after_timestamp + "'");
-        else:
+        if flight_after_timestamp is not None and flight_number is not None:
+            result = self.execute_command(
+                "Select * from flight_history where time_added > '" + flight_after_timestamp + "' and flight_number='" + flight_number + "'");
+        if flight_after_timestamp is None and flight_number is None:
             result = self.execute_command('Select * from flight_history')
+        if flight_after_timestamp is None and flight_number is not None:
+            result = self.execute_command(
+                "Select * from flight_history where flight_number= '" + flight_number + "'");
         flight_dict_list = []
         coordinates_tuple_list = self.get_coordinates_from_geography()
         for flight_tuple in result:
@@ -81,6 +86,8 @@ class FlightDB:
             temp_dict['track'] = flight_tuple[4]
             temp_dict['speed'] = flight_tuple[2]
             temp_dict['time_added'] = str(flight_tuple[5])
+            if get_recorded_positions:
+                temp_dict['recorded_positions'] = self.get_all_coordinates_of_flight_number(flight_tuple[0])
             flight_dict_list.append(temp_dict)
         return flight_dict_list
 
@@ -96,9 +103,12 @@ class FlightDB:
                 return coordinates_tuple[2], coordinates_tuple[1]
 
     def get_coordinates_of_flights(self, flight_number):
+        my_list = []
         result = self.execute_command(
-            "SELECT flight_number, ST_X(coordinates::geometry), ST_Y(coordinates::geometry) FROM flight_history where "+ +" ");
-        print(result)
+            "SELECT ST_X(coordinates::geometry), ST_Y(coordinates::geometry) FROM flight_history where flight_number='" + flight_number + "' order by time_added desc");
+        for tuple in result:
+            my_list.append([tuple[1], tuple[0]])
+        return my_list
 
     def get_actual_timestamp(self):
         import datetime;
@@ -109,7 +119,10 @@ class FlightDB:
         return ts
 
     def add_history_coordinates_to_flight_dict_list(self, flight_dict_list):
-        flight_numbers = self.get_flight_number_list(flight_dict_list)
+        for flight_dict in flight_dict_list:
+            coordinates_list = self.get_coordinates_of_flights(flight_dict['flight'])
+            flight_dict['recorded_positions'] = coordinates_list
+        return flight_dict_list
 
     def get_flight_number_list(self, flight_dict_list):
         temp_list = []
