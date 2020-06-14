@@ -137,6 +137,8 @@ class FlightDB:
             is_valid = True
             if 'flight' not in keys or 'lat' not in keys or 'lon' not in keys:
                 is_valid = False
+            if 'flight' in keys:
+                dict['flight'] = dict['flight'].strip()
             if is_valid:
                 corrected_dict_list.append(dict)
         return corrected_dict_list
