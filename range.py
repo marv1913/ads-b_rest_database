@@ -5,16 +5,28 @@ from pip._vendor import requests
 
 from flight_db import FlightDB
 
-flight_database = FlightDB('postgres', 'summt1913', '192.168.178.67', 5432, 'flight_radar')
+flight_database = FlightDB('postgres', 'admin', '192.168.178.54', 5432, 'postgres')
 my_position = {'latitude': 52.694142, 'longitude': 13.362245}
 
 bvs_position = {'latitude': 52.571717, 'longitude': 13.368112}
+
+import socket
+
+UDP_IP = "127.0.0.1"
+
+UDP_PORT = 10110
+
+sock = socket.socket(socket.AF_INET,  # Internet
+
+                     socket.SOCK_DGRAM)  # UDP
+
+sock.bind((UDP_IP, UDP_PORT))
 
 
 # my_position = bvs_position
 
 def get_flight_information_dict():
-    response = requests.get('http://192.168.178.67:8080/data/aircraft.json')
+    response = requests.get('http://192.168.178.79:8080/data/aircraft.json')
     dict = json.loads(response.text)
     return dict['aircraft']
 
@@ -22,6 +34,11 @@ def get_flight_information_dict():
 def get_current_flights():
     current_flights_as_dict_list = flight_database.check_flight_dicts(get_flight_information_dict())
     return flight_database.add_history_coordinates_to_flight_dict_list(current_flights_as_dict_list)
+
+
+def get_current_ship_data():
+    data, addr = sock.recvfrom(1024)  # buffer size is 1024 bytes
+    return json.loads(data)
 
 
 def print_flight_statistic():
@@ -106,7 +123,8 @@ if __name__ == '__main__':
     # flight_dict_list = flight_database.get_flight_data('2020-05-31 11:20:41')
 
     # print(flight_database.check_flight_dicts(get_flight_information_dict()))
-    print(get_current_flights())
+    flight_database.insert_ship_data(
+        {'ship_name': 'MSI TEST', 'lat': 52.488302, 'lon': 13.490521, 'speed': 8, 'ship_size': 15})
     test_dict_list = [
         {'hex': '440037', 'flight': 'EJU9042 ', 'alt_baro': 8000, 'alt_geom': 8275, 'gs': 290.7, 'ias': 250, 'tas': 282,
          'mach': 0.436, 'track': 243.0, 'track_rate': -0.03, 'roll': 0.2, 'mag_heading': 239.6, 'baro_rate': 0,

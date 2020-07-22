@@ -49,6 +49,15 @@ class FlightDB:
         except KeyError:
             print('flight_dict has bad format: ' + str(flight_dict))
 
+    def insert_ship_data(self, ship_dict):
+        try:
+            self.execute_command("Insert into ships values ('" + ship_dict[
+                'ship_name'].strip() + "', ST_GeogFromText('POINT(" + str(ship_dict['lon']) + " " + str(
+                ship_dict['lat']) + ")'), " + str(ship_dict['speed']) + ",  " + str(ship_dict['ship_size']) + ",'" + str(
+                self.get_actual_timestamp()) + "','" + str(uuid.uuid1()) + "')");
+        except KeyError:
+            print('flight_dict has bad format: ' + str(ship_dict))
+
     def check_entry_existing(self, flight_number, lat, lon):
         """
         checks whether coordinate for flight_number is already existing
@@ -93,7 +102,7 @@ class FlightDB:
 
     def get_coordinates_from_geography(self):
         result = self.execute_command(
-            "SELECT my_id, ST_X(coordinates::geometry), ST_Y(coordinates::geometry) FROM flight_history");
+            "SELECT id, ST_X(coordinates::geometry), ST_Y(coordinates::geometry) FROM flight_history");
         # print(result)
         return result
 
@@ -142,3 +151,11 @@ class FlightDB:
             if is_valid:
                 corrected_dict_list.append(dict)
         return corrected_dict_list
+
+    def check_ship_data_list(self, dict_list):
+        temp_list = []
+        for my_dict in dict_list:
+            keys = my_dict.keys()
+            if 'ship_name' in keys and 'lat' in keys and 'lon' in keys:
+                temp_list.append(my_dict)
+        return temp_list
