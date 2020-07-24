@@ -37,6 +37,16 @@ class FlightDB:
             all_coordinates_tuple_list.append(coordinates)
         return all_coordinates_tuple_list
 
+    def get_all_coordinates_of_ship_name(self, ship_name):
+        all_coordinates_tuple_list = []
+        all_entries_of_ship = self.execute_command(
+            "select * from ships where ship_name= '" + ship_name + "' order by time_added desc;")
+        all_coordinates = self.get_all_coordinates_from_ship_table()
+        for ship_tuple in all_entries_of_ship:
+            coordinates = self.get_coordinates_tuple_of_certain_id(all_coordinates, ship_tuple[5])
+            all_coordinates_tuple_list.append(coordinates)
+        return all_coordinates_tuple_list
+
     def insert_flight_data(self, flight_dict):
         if self.check_entry_existing(flight_dict['flight'].strip(), flight_dict['lat'], flight_dict['lon']):
             return
@@ -53,7 +63,8 @@ class FlightDB:
         try:
             self.execute_command("Insert into ships values ('" + ship_dict[
                 'ship_name'].strip() + "', ST_GeogFromText('POINT(" + str(ship_dict['lon']) + " " + str(
-                ship_dict['lat']) + ")'), " + str(ship_dict['speed']) + ",  " + str(ship_dict['ship_size']) + ",'" + str(
+                ship_dict['lat']) + ")'), " + str(ship_dict['speed']) + ",  " + str(
+                ship_dict['ship_size']) + ",'" + str(
                 self.get_actual_timestamp()) + "','" + str(uuid.uuid1()) + "')");
         except KeyError:
             print('flight_dict has bad format: ' + str(ship_dict))
@@ -103,7 +114,11 @@ class FlightDB:
     def get_coordinates_from_geography(self):
         result = self.execute_command(
             "SELECT id, ST_X(coordinates::geometry), ST_Y(coordinates::geometry) FROM flight_history");
-        # print(result)
+        return result
+
+    def get_all_coordinates_from_ship_table(self):
+        result = self.execute_command(
+            "SELECT id, ST_X(coordinates::geometry), ST_Y(coordinates::geometry) FROM ships");
         return result
 
     def get_coordinates_tuple_of_certain_id(self, coordinates_tuple_list, id):
@@ -114,7 +129,8 @@ class FlightDB:
     def get_coordinates_of_flights(self, flight_number):
         my_list = []
         result = self.execute_command(
-            "SELECT ST_X(coordinates::geometry), ST_Y(coordinates::geometry) FROM flight_history where flight_number='" + flight_number + "' order by time_added desc");
+            "SELECT ST_X(coordinates::geometry), ST_Y(coordinates::geometry) FROM flight_history where flight_number='"
+            + flight_number + "' order by time_added desc");
         for tuple in result:
             my_list.append([tuple[1], tuple[0]])
         return my_list

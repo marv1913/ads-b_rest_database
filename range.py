@@ -1,26 +1,25 @@
 import json
 import time
 from math import sin, cos, sqrt, atan2, radians
-from pip._vendor import requests
+
+import requests
 
 from flight_db import FlightDB
 
 flight_database = FlightDB('postgres', 'admin', '192.168.178.54', 5432, 'postgres')
-my_position = {'latitude': 52.694142, 'longitude': 13.362245}
+my_position = {'latitude': 52.667118, 'longitude': 13.379452}
 
-bvs_position = {'latitude': 52.571717, 'longitude': 13.368112}
-
-import socket
-
-UDP_IP = "127.0.0.1"
-
-UDP_PORT = 10110
-
-sock = socket.socket(socket.AF_INET,  # Internet
-
-                     socket.SOCK_DGRAM)  # UDP
-
-sock.bind((UDP_IP, UDP_PORT))
+# import socket
+#
+# UDP_IP = "127.0.0.1"
+#
+# UDP_PORT = 10110
+#
+# sock = socket.socket(socket.AF_INET,  # Internet
+#
+#                      socket.SOCK_DGRAM)  # UDP
+#
+# sock.bind((UDP_IP, UDP_PORT))
 
 
 # my_position = bvs_position
@@ -52,7 +51,7 @@ def print_flight_statistic():
 
 def get_count_of_flights(flight_dict_list):
     counted_flights = []
-    count = 0;
+    count = 0
     for flight_dict in flight_dict_list:
         if flight_dict['flight'] not in counted_flights:
             counted_flights.append(flight_dict['flight'])
@@ -120,11 +119,19 @@ def get_distance(latitude1, longitude1, latitude2, longitude2):
 if __name__ == '__main__':
     # get_max_range(300)
 
-    # flight_dict_list = flight_database.get_flight_data('2020-05-31 11:20:41')
+    flight_dict_list = flight_database.get_flight_data('2020-07-24 11:20:41')
 
     # print(flight_database.check_flight_dicts(get_flight_information_dict()))
-    flight_database.insert_ship_data(
-        {'ship_name': 'MSI TEST', 'lat': 52.488302, 'lon': 13.490521, 'speed': 8, 'ship_size': 15})
+    # flight_database.insert_ship_data(
+    #     {'ship_name': 'MSI TEST', 'lat':52.502158, 'lon': 13.444523, 'speed': 8, 'ship_size': 15})
+    while True:
+        dict_list = get_flight_information_dict()
+        dict_list = flight_database.check_flight_dicts(dict_list)
+        for dict in dict_list:
+            flight_database.insert_flight_data(dict)
+            print('inserted')
+        time.sleep(4)
+
     test_dict_list = [
         {'hex': '440037', 'flight': 'EJU9042 ', 'alt_baro': 8000, 'alt_geom': 8275, 'gs': 290.7, 'ias': 250, 'tas': 282,
          'mach': 0.436, 'track': 243.0, 'track_rate': -0.03, 'roll': 0.2, 'mag_heading': 239.6, 'baro_rate': 0,
