@@ -3,7 +3,6 @@ import uuid
 import psycopg2
 
 
-# https://pynative.com/python-postgresql-tutorial/
 class FlightDB:
 
     def __init__(self, user, password, host, port, database):
