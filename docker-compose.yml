@@ -1,0 +1,37 @@
+version: "3"
+services:
+  flight_inserter:
+      image: python
+
+      working_dir: /usr/src/app
+      volumes:
+        - ./:/usr/src/app
+      network_mode: "host"
+      command: bash -c "python3 -m pip install -r requirements.txt && python3 utility.py"
+  flight_rest_server:
+    image: python
+
+    working_dir: /usr/src/app
+    volumes:
+      - ./:/usr/src/app
+    ports:
+      - "127.0.0.1:3000:3000"
+    command: bash -c "python3 -m pip install -r requirements.txt && python3 rest_server.py"
+
+  db:
+    image: "postgis/postgis"
+    expose:
+      - 5432
+    ports:
+      - "127.0.0.1:5432:5432"
+
+    environment:
+      - POSTGRES_PASSWORD=admin
+    volumes:
+      - database_data:/var/lib/postgresql/data
+      - ./create_databases.sql:/docker-entrypoint-initdb.d/create_databases.sql
+
+volumes:
+  database_data:
+    driver: local
+

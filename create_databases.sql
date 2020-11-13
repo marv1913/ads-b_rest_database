@@ -1,0 +1,1 @@
+create table flight_history(flight_number varchar, altitude varchar, speed varchar, coordinates geography, track varchar, time_added timestamp, id varchar);

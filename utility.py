@@ -4,28 +4,41 @@ from math import sin, cos, sqrt, atan2, radians
 
 import requests
 
+import variables
 from flight_db import FlightDB
 
-flight_database = FlightDB('postgres', 'admin', '192.168.178.54', 5432, 'postgres')
+flight_database = FlightDB(variables.db_username, variables.db_password, variables.db_host, variables.db_port,
+                           variables.database)
 my_position = {'latitude': 52.667118, 'longitude': 13.379452}
 
 import socket
 
-UDP_IP = "127.0.0.1"
+# socket to receive AIS ship data
 
-UDP_PORT = 10110
-
-sock = socket.socket(socket.AF_INET,  # Internet
-
-                     socket.SOCK_DGRAM)  # UDP
-
-sock.bind((UDP_IP, UDP_PORT))
-
+# UDP_IP = "127.0.0.1"
+#
+# UDP_PORT = 10110
+#
+# sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
+#
+# sock.bind((UDP_IP, UDP_PORT))
 
 
 def get_flight_information_dict():
     response = requests.get('http://192.168.178.79:8080/data/aircraft.json')
     dict = json.loads(response.text)
+    # dict = {"now": 1605280593.0,
+    #  "messages": 25509,
+    #  "aircraft": [
+    #      {"hex": "71ba03", "alt_baro": 38000, "mlat": [], "tisb": [], "messages": 9, "seen": 15.1, "rssi": -19.8},
+    #      {"hex": "3c6593", "flight": "DLH7TE  ", "alt_baro": 39050, "alt_geom": 39275, "gs": 434.7, "ias": 239,
+    #       "tas": 438, "mach": 0.776, "track": 20.2, "track_rate": 0.00, "roll": -0.2, "mag_heading": 11.2,
+    #       "baro_rate": -64, "geom_rate": -64, "squawk": "6446", "emergency": "none", "category": "A3",
+    #       "nav_qnh": 1012.8, "nav_altitude_mcp": 39008, "lat": 52.237570, "lon": 13.954599, "nic": 8, "rc": 186,
+    #       "seen_pos": 6.0, "version": 2, "nic_baro": 1, "nac_p": 10, "nac_v": 1, "sil": 3, "sil_type": "perhour",
+    #       "gva": 2, "sda": 2, "mlat": [], "tisb": [], "messages": 405, "seen": 0.0, "rssi": -17.5}
+    #  ]
+    #  }
     return dict['aircraft']
 
 
@@ -35,8 +48,9 @@ def get_current_flights():
 
 
 def get_current_ship_data():
-    data, addr = sock.recvfrom(1024)  # buffer size is 1024 bytes
-    return json.loads(data)
+    # data, addr = sock.recvfrom(1024)  # buffer size is 1024 bytes
+    # return json.loads(data)
+    pass
 
 
 def print_flight_statistic():
@@ -119,10 +133,9 @@ if __name__ == '__main__':
     # get current flight_data from dump1090 REST Server and add them to database
     while True:
         dict_list = get_flight_information_dict()
+        print(dict_list)
         dict_list = flight_database.check_flight_dicts(dict_list)
         for temp_dict in dict_list:
             flight_database.insert_flight_data(temp_dict)
             print('inserted')
         time.sleep(4)
-
-

@@ -2,20 +2,17 @@ import json
 
 from flask import Flask, request
 
+import variables
 from flight_db import FlightDB
 import utility
 
 app = Flask(__name__)
-flight_database = FlightDB('postgres', 'admin', '192.168.178.54', 5432, 'postgres')
-
-
-@app.route('/')
-def main():
-    return 'some text'
+flight_database = FlightDB(variables.db_username, variables.db_password, variables.db_host_rest_server,
+                           variables.db_port, variables.database)
 
 
 @app.route('/actual_flight_data', methods=['GET'])
-def view_do_something():
+def get_actual_flight_data():
     if request.method == 'POST':
         return json.dumps(flight_database.check_flight_dicts(utility.get_flight_information_dict()))
     else:
@@ -23,7 +20,7 @@ def view_do_something():
 
 
 @app.route('/max_range_of_flights', methods=['POST'])
-def view_do_something():
+def get_max_range_of_flights():
     """
     get max Range of received flights since specific date from database
     example for interval string: '2020-07-24 11:20:41'
@@ -36,7 +33,7 @@ def view_do_something():
 
 
 @app.route('/count_of_flights', methods=['POST'])
-def view_do_something():
+def get_count_of_flights():
     """
     get count of flights since specific date from database
     example for interval string: '2020-07-24 11:20:41'
@@ -78,4 +75,4 @@ def get_all_positions_of_ship_name():
 
 
 if __name__ == '__main__':
-    app.run(host='192.168.178.40')
+    app.run(host='0.0.0.0', port=3000)
